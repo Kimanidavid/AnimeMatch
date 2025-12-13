@@ -12,12 +12,19 @@ export function BingePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [watchlist, setWatchlist] = useState<Set<number>>(new Set());
+  const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
       loadQueue();
       loadWatchlist();
     }
+    return () => {
+      // cleanup subscription on unmount or user change
+      if (subscription && subscription.unsubscribe) {
+        try { subscription.unsubscribe(); } catch (e) { /* ignore */ }
+      }
+    };
   }, [user]);
 
   const loadWatchlist = async () => {
@@ -47,6 +54,29 @@ export function BingePage() {
     }
 
     const animeIds = topAnimeData.map((i: any) => i.anime_id);
+
+    // Subscribe to watchlist and user_top_anime changes so the binge queue updates automatically
+    try {
+      // remove existing subscription first
+      if (subscription && subscription.unsubscribe) {
+        try { subscription.unsubscribe(); } catch (e) { /* ignore */ }
+      }
+
+      const channel = supabase
+        .channel('public-watchlist')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'watchlist' }, () => {
+          loadQueue();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_top_anime' }, () => {
+          loadQueue();
+        })
+        .subscribe();
+
+      setSubscription(channel);
+    } catch (err) {
+      // ignore subscription failures; we still provide manual refresh
+      console.error('Failed to subscribe to realtime updates:', err);
+    }
 
     const { data: preferences } = await supabase
       .from('user_preferences')

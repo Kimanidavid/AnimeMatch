@@ -1,5 +1,6 @@
 import type { AnimeData } from '../lib/database.types';
 import { animeApi } from './animeApi';
+import { supabase } from '../lib/supabase';
 
 interface AnimeFeatureVector {
   genres: Set<string>;
@@ -45,6 +46,37 @@ export const recommendationEngine = {
 
     const candidateAnime = await animeApi.getTopAnime(200);
 
+    // Collaborative boost: find other users who have items from the user's top list in their watchlists
+    // and count which other anime they have — more frequent items will get a boost.
+    const cooccurrenceCounts = new Map<number, number>();
+    try {
+      const { data: usersWithTop, error: uErr } = await supabase
+        .from('watchlist')
+        .select('user_id')
+        .in('anime_id', topAnimeIds)
+        .neq('user_id', null);
+
+      if (!uErr && usersWithTop && usersWithTop.length > 0) {
+        const userIds = Array.from(new Set(usersWithTop.map((r: any) => r.user_id)));
+
+        const { data: otherWatchlists } = await supabase
+          .from('watchlist')
+          .select('anime_id')
+          .in('user_id', userIds);
+
+        if (otherWatchlists) {
+          otherWatchlists.forEach((row: any) => {
+            const id = row.anime_id as number;
+            if (topAnimeIds.includes(id)) return; // skip seeds
+            cooccurrenceCounts.set(id, (cooccurrenceCounts.get(id) || 0) + 1);
+          });
+        }
+      }
+    } catch (err) {
+      // non-fatal — just proceed without collaborative boost
+      console.error('Error computing co-occurrence boost:', err);
+    }
+
     const seedIds = new Set(topAnimeIds);
     const filteredCandidates = candidateAnime.filter(anime => {
       if (seedIds.has(anime.mal_id)) return false;
@@ -78,12 +110,26 @@ export const recommendationEngine = {
     });
 
     const recommendations = filteredCandidates.map(anime => {
-      const score = this.computeSimilarityScore(
+      let score = this.computeSimilarityScore(
         userTasteVector,
         this.extractFeatures(anime),
         preferences
       );
+
+      // Apply collaborative boost based on co-occurrence counts
+      const coCount = cooccurrenceCounts.get(anime.mal_id) || 0;
+      if (coCount > 0) {
+        // logarithmic boost to avoid domination by popular items
+        const boost = Math.min(20, Math.log(coCount + 1) * 6);
+        score += boost;
+      }
+
       const reasons = this.generateReasons(anime, validTopAnime);
+
+      // If collaborative boost applied, add reason
+      if (coCount > 0) {
+        reasons.unshift(`Popular with similar users (${coCount} others)`);
+      }
 
       return { anime, score, reasons };
     });
