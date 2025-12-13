@@ -1,4 +1,4 @@
-import { Sparkles, Home, TrendingUp, Calendar, User, LogOut } from 'lucide-react';
+import { Home, TrendingUp, Calendar, User, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {
@@ -12,44 +12,41 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
   if (!user) return null;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-lg border-b border-pink-500/20">
+    <nav className="sticky top-0 z-40 bg-[#F7931E] border-b-4 border-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <Sparkles className="text-pink-500" size={28} />
-            <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
-              AnimeMatch
-            </span>
+            <span className="text-2xl font-bold text-black">ANIME MATCH</span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <NavButton
               icon={Home}
-              label="Home"
+              label="HOME"
               active={currentPage === 'landing'}
               onClick={() => onNavigate('landing')}
             />
             <NavButton
               icon={TrendingUp}
-              label="For You"
+              label="FOR YOU"
               active={currentPage === 'recommendations'}
               onClick={() => onNavigate('recommendations')}
             />
             <NavButton
               icon={Calendar}
-              label="Upcoming"
+              label="NEW"
               active={currentPage === 'upcoming'}
               onClick={() => onNavigate('upcoming')}
             />
             <NavButton
               icon={User}
-              label="Profile"
+              label="PROFILE"
               active={currentPage === 'profile'}
               onClick={() => onNavigate('profile')}
             />
             <button
               onClick={signOut}
-              className="ml-2 p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+              className="ml-2 p-2 text-black hover:bg-[#A63F4F] hover:text-white transition-all font-bold border-2 border-black rounded"
               title="Sign Out"
             >
               <LogOut size={20} />
@@ -70,14 +67,14 @@ function NavButton({ icon: Icon, label, active, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+      className={`flex items-center gap-2 px-4 py-2 font-bold border-2 border-black transition-all text-black ${
         active
-          ? 'bg-gradient-to-r from-pink-500/20 to-blue-500/20 text-pink-400 border border-pink-500/30'
-          : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          ? 'bg-black text-[#F7931E] border-black'
+          : 'bg-white hover:bg-gray-200'
       }`}
     >
       <Icon size={20} />
-      <span className="font-medium">{label}</span>
+      <span className="text-sm">{label}</span>
     </button>
   );
 }

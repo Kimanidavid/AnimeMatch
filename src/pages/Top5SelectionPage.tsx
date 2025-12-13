@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, X, Sparkles, Loader } from 'lucide-react';
+import { Search, X, Loader } from 'lucide-react';
 import { animeApi } from '../services/animeApi';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -106,67 +106,62 @@ export function Top5SelectionPage({ onComplete }: Top5SelectionPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-24 pb-16">
+    <div className="min-h-screen bg-[#F5EFE0] pt-20 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-            <Sparkles className="text-pink-500" />
-            Pick Your Top 5 Anime
-            <Sparkles className="text-blue-500" />
-          </h1>
-          <p className="text-gray-400">
-            Select up to 5 of your favorite anime to get personalized recommendations
+        <div className="comic-panel comic-panel-primary p-8 mb-8">
+          <h1 className="text-5xl font-bold text-black mb-4">PICK YOUR TOP 5!</h1>
+          <p className="text-xl font-bold text-black mb-4">
+            Select up to 5 of your favorite anime
           </p>
-          <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="flex items-center gap-3">
             {[1, 2, 3, 4, 5].map(num => (
               <div
                 key={num}
-                className={`w-3 h-3 rounded-full ${
+                className={`w-10 h-10 rounded-full border-3 border-black flex items-center justify-center font-bold ${
                   selectedAnime.length >= num
-                    ? 'bg-gradient-to-r from-pink-500 to-blue-500'
-                    : 'bg-gray-700'
+                    ? 'bg-black text-[#F7931E]'
+                    : 'bg-white text-black'
                 }`}
-              />
+              >
+                {num}
+              </div>
             ))}
           </div>
         </div>
 
         <div className="mb-8">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-black" size={20} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for an anime..."
-              className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+              placeholder="Search anime..."
+              className="w-full pl-12 pr-4 py-4 bg-white border-4 border-black text-black placeholder-gray-600 focus:outline-none font-bold text-lg"
             />
             {searching && (
-              <Loader className="absolute right-4 top-1/2 -translate-y-1/2 text-pink-500 animate-spin" size={20} />
+              <Loader className="absolute right-4 top-1/2 -translate-y-1/2 text-[#F7931E] animate-spin" size={20} />
             )}
           </div>
 
           {searchResults.length > 0 && (
-            <div className="mt-2 bg-gray-800 border border-gray-700 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+            <div className="mt-2 comic-panel p-0 overflow-hidden max-h-96 overflow-y-auto">
               {searchResults.map(anime => (
                 <button
                   key={anime.mal_id}
                   onClick={() => handleSelectAnime(anime)}
                   disabled={selectedAnime.length >= 5}
-                  className="w-full flex items-center gap-4 p-3 hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center gap-4 p-3 border-b-2 border-black hover:bg-[#F7931E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed last:border-b-0"
                 >
                   <img
                     src={anime.images?.jpg?.image_url}
                     alt={anime.title}
-                    className="w-16 h-20 object-cover rounded"
+                    className="w-16 h-20 object-cover border-2 border-black"
                   />
                   <div className="flex-1 text-left">
-                    <div className="font-semibold text-white">{anime.title}</div>
-                    <div className="text-sm text-gray-400">
+                    <div className="font-bold text-black">{anime.title}</div>
+                    <div className="text-sm font-semibold text-black">
                       {anime.year} • {anime.type}
-                      {anime.genres && anime.genres.length > 0 && (
-                        <span> • {anime.genres.slice(0, 2).map(g => g.name).join(', ')}</span>
-                      )}
                     </div>
                   </div>
                 </button>
@@ -176,36 +171,36 @@ export function Top5SelectionPage({ onComplete }: Top5SelectionPageProps) {
         </div>
 
         <div className="space-y-4 mb-8">
-          <h2 className="text-xl font-bold text-white">Your Selected Anime</h2>
+          <h2 className="text-3xl font-bold text-black">YOUR PICKS:</h2>
           {selectedAnime.length === 0 ? (
-            <div className="text-center py-12 bg-gray-800/30 border-2 border-dashed border-gray-700 rounded-xl">
-              <p className="text-gray-500">No anime selected yet</p>
+            <div className="text-center py-12 comic-panel bg-white">
+              <p className="font-bold text-lg text-black">No anime selected yet!</p>
             </div>
           ) : (
             <div className="grid gap-4">
               {selectedAnime.map((anime, index) => (
                 <div
                   key={anime.mal_id}
-                  className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-800 to-gray-800/50 border border-pink-500/20 rounded-xl hover:border-pink-500/40 transition-all"
+                  className="flex items-center gap-4 p-4 comic-panel comic-panel-teal"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold border-2 border-black text-lg">
                     {index + 1}
                   </div>
                   <img
                     src={anime.images?.jpg?.image_url}
                     alt={anime.title}
-                    className="w-16 h-20 object-cover rounded"
+                    className="w-16 h-20 object-cover border-2 border-black"
                   />
                   <div className="flex-1">
-                    <div className="font-semibold text-white">{anime.title}</div>
-                    <div className="text-sm text-gray-400">
+                    <div className="font-bold text-white">{anime.title}</div>
+                    <div className="text-sm font-semibold text-white">
                       {anime.year} • {anime.type}
                       {anime.score && ` • ⭐ ${anime.score.toFixed(1)}`}
                     </div>
                   </div>
                   <button
                     onClick={() => handleRemoveAnime(anime.mal_id)}
-                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                    className="p-2 text-white hover:bg-[#A63F4F] border-2 border-white font-bold rounded transition-all"
                   >
                     <X size={20} />
                   </button>
@@ -218,9 +213,9 @@ export function Top5SelectionPage({ onComplete }: Top5SelectionPageProps) {
         <button
           onClick={handleSubmit}
           disabled={selectedAnime.length === 0 || loading}
-          className="w-full py-4 px-6 bg-gradient-to-r from-pink-500 to-blue-500 text-white text-lg font-bold rounded-xl hover:shadow-2xl hover:shadow-pink-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="comic-button w-full py-4 px-6 bg-[#4A7C7E] text-white text-2xl disabled:opacity-50"
         >
-          {loading ? 'Generating Recommendations...' : 'Generate Recommendations'}
+          {loading ? 'GENERATING...' : 'GENERATE RECOMMENDATIONS!'}
         </button>
       </div>
     </div>

@@ -144,32 +144,32 @@ export function ProfilePage({ onRePickTop5 }: ProfilePageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-24 pb-16">
+    <div className="min-h-screen bg-[#F5EFE0] pt-20 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-            <User className="text-pink-500" />
-            Profile & Settings
+        <div className="comic-panel comic-panel-primary p-8 mb-8">
+          <h1 className="text-5xl font-bold text-black mb-2 flex items-center gap-3">
+            <User className="text-black" />
+            PROFILE!
           </h1>
-          <p className="text-gray-400">Manage your preferences and anime lists</p>
+          <p className="text-lg font-bold text-black">Manage your preferences</p>
         </div>
 
         <div className="space-y-6">
-          <section className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Profile Information</h2>
+          <section className="comic-panel p-6">
+            <h2 className="text-2xl font-bold text-black mb-4">PROFILE INFO</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+              <label className="block font-bold text-black mb-2 text-lg">USERNAME</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                className="w-full px-4 py-3 bg-white border-4 border-black text-black focus:outline-none font-bold"
               />
             </div>
           </section>
 
-          <section className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Your Top 5 Anime</h2>
+          <section className="comic-panel p-6">
+            <h2 className="text-2xl font-bold text-black mb-4">TOP 5 ANIME</h2>
             {topAnime.length > 0 ? (
               <div className="space-y-3">
                 <div className="flex gap-3 overflow-x-auto pb-2">
@@ -179,52 +179,52 @@ export function ProfilePage({ onRePickTop5 }: ProfilePageProps) {
                         <img
                           src={anime.images?.jpg?.image_url}
                           alt={anime.title}
-                          className="w-24 h-32 object-cover rounded-lg border-2 border-pink-500/30"
+                          className="w-24 h-32 object-cover border-3 border-black"
                         />
-                        <div className="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-pink-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        <div className="absolute -top-2 -left-2 w-8 h-8 bg-[#F7931E] rounded-full flex items-center justify-center text-black text-sm font-bold border-2 border-black">
                           {index + 1}
                         </div>
                       </div>
-                      <p className="text-xs text-gray-400 mt-2 max-w-[96px] truncate">{anime.title}</p>
+                      <p className="text-xs text-black mt-2 max-w-[96px] truncate font-bold">{anime.title}</p>
                     </div>
                   ))}
                 </div>
                 <button
                   onClick={onRePickTop5}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-pink-400 rounded-lg hover:bg-gray-600 transition-all"
+                  className="comic-button flex items-center justify-center gap-2 px-4 py-2 bg-[#4A7C7E] text-white font-bold w-full"
                 >
                   <RefreshCw size={16} />
-                  Change Top 5
+                  CHANGE TOP 5
                 </button>
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-400 mb-4">You haven't selected your top 5 yet</p>
+                <p className="text-black font-bold mb-4">You haven't picked your top 5 yet!</p>
                 <button
                   onClick={onRePickTop5}
-                  className="px-4 py-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg hover:shadow-lg hover:shadow-pink-500/30 transition-all"
+                  className="comic-button px-4 py-2 bg-[#4A7C7E] text-white font-bold"
                 >
-                  Pick Your Top 5
+                  PICK YOUR TOP 5
                 </button>
               </div>
             )}
           </section>
 
-          <section className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Preferences</h2>
+          <section className="comic-panel-teal comic-panel p-6">
+            <h2 className="text-2xl font-bold text-white mb-4">PREFERENCES</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Preferred Genres</label>
+                <label className="block font-bold text-white mb-2">PREFERRED GENRES</label>
                 <div className="flex flex-wrap gap-2">
                   {GENRE_OPTIONS.map(genre => (
                     <button
                       key={genre}
                       onClick={() => toggleGenre(genre, preferredGenres, setPreferredGenres)}
-                      className={`px-3 py-1 rounded text-sm transition-all ${
+                      className={`px-2 py-1 text-xs font-bold border-2 border-white transition-all ${
                         preferredGenres.includes(genre)
-                          ? 'bg-gradient-to-r from-pink-500 to-blue-500 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-white text-[#4A7C7E]'
+                          : 'bg-transparent text-white hover:bg-white/20'
                       }`}
                     >
                       {genre}
@@ -234,16 +234,16 @@ export function ProfilePage({ onRePickTop5 }: ProfilePageProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Avoid Genres</label>
+                <label className="block font-bold text-white mb-2">AVOID GENRES</label>
                 <div className="flex flex-wrap gap-2">
                   {GENRE_OPTIONS.map(genre => (
                     <button
                       key={genre}
                       onClick={() => toggleGenre(genre, avoidGenres, setAvoidGenres)}
-                      className={`px-3 py-1 rounded text-sm transition-all ${
+                      className={`px-2 py-1 text-xs font-bold border-2 border-white transition-all ${
                         avoidGenres.includes(genre)
-                          ? 'bg-red-500 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-[#A63F4F] text-white'
+                          : 'bg-transparent text-white hover:bg-white/20'
                       }`}
                     >
                       {genre}
@@ -253,11 +253,11 @@ export function ProfilePage({ onRePickTop5 }: ProfilePageProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Content Rating Filter</label>
+                <label className="block font-bold text-white mb-2">CONTENT RATING</label>
                 <select
                   value={contentFilter}
                   onChange={(e) => setContentFilter(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
+                  className="w-full px-3 py-2 bg-white text-black border-2 border-white focus:outline-none font-bold"
                 >
                   <option value="all">Show all</option>
                   <option value="teen">Teen and below</option>
@@ -266,11 +266,11 @@ export function ProfilePage({ onRePickTop5 }: ProfilePageProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Preferred Episode Length</label>
+                <label className="block font-bold text-white mb-2">EPISODE LENGTH</label>
                 <select
                   value={episodeLength}
                   onChange={(e) => setEpisodeLength(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
+                  className="w-full px-3 py-2 bg-white text-black border-2 border-white focus:outline-none font-bold"
                 >
                   <option value="any">Any length</option>
                   <option value="< 15 min">Short (under 15 min)</option>
@@ -283,44 +283,44 @@ export function ProfilePage({ onRePickTop5 }: ProfilePageProps) {
             <button
               onClick={handleSave}
               disabled={loading}
-              className="mt-6 flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-pink-500 to-blue-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-pink-500/30 transition-all disabled:opacity-50"
+              className="comic-button mt-6 flex items-center justify-center gap-2 w-full px-4 py-3 bg-white text-[#4A7C7E] font-bold disabled:opacity-50"
             >
               <Save size={20} />
-              {loading ? 'Saving...' : 'Save Preferences'}
+              {loading ? 'SAVING...' : 'SAVE PREFS'}
             </button>
 
             {savedMessage && (
-              <p className="mt-3 text-center text-green-400">{savedMessage}</p>
+              <p className="mt-3 text-center text-white font-bold">{savedMessage}</p>
             )}
           </section>
 
-          <section className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Heart className="text-pink-500" size={24} />
-              Your Watchlist ({watchlist.length})
+          <section className="comic-panel-blue comic-panel p-6">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <Heart className="text-white" size={24} />
+              WATCHLIST ({watchlist.length})
             </h2>
             {watchlist.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {watchlist.map(item => (
                   <div key={item.id} className="group relative">
                     <img
                       src={item.anime_image_url || ''}
                       alt={item.anime_title}
-                      className="w-full aspect-[2/3] object-cover rounded-lg border border-pink-500/30"
+                      className="w-full aspect-[2/3] object-cover border-3 border-white"
                     />
                     <button
                       onClick={() => handleRemoveFromWatchlist(item.id)}
-                      className="absolute top-2 right-2 p-1 bg-red-500/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 p-1 bg-[#A63F4F] text-white opacity-0 group-hover:opacity-100 transition-opacity border-2 border-white"
                       title="Remove"
                     >
                       <Trash2 size={14} />
                     </button>
-                    <p className="mt-2 text-sm text-gray-300 line-clamp-2">{item.anime_title}</p>
+                    <p className="mt-2 text-xs text-white line-clamp-2 font-bold">{item.anime_title}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-8">Your watchlist is empty</p>
+              <p className="text-white text-center py-8 font-bold">Your watchlist is empty!</p>
             )}
           </section>
         </div>
