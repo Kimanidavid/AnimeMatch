@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-type Page = 'landing' | 'auth' | 'top5' | 'recommendations' | 'upcoming' | 'profile';
+type Page = 'landing' | 'auth' | 'top5' | 'recommendations' | 'upcoming' | 'profile' | 'binge';
 
 interface RouterContextType {
   currentPage: Page;

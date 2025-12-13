@@ -1,9 +1,9 @@
-import { Home, TrendingUp, Calendar, User, LogOut } from 'lucide-react';
+import { Home, TrendingUp, Calendar, User, LogOut, Play } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {
   currentPage: string;
-  onNavigate: (page: 'landing' | 'recommendations' | 'upcoming' | 'profile') => void;
+  onNavigate: (page: 'landing' | 'recommendations' | 'upcoming' | 'profile' | 'binge') => void;
 }
 
 export function Navbar({ currentPage, onNavigate }: NavbarProps) {
@@ -37,6 +37,12 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               label="NEW"
               active={currentPage === 'upcoming'}
               onClick={() => onNavigate('upcoming')}
+            />
+            <NavButton
+              icon={Play}
+              label="BINGE"
+              active={currentPage === 'binge'}
+              onClick={() => onNavigate('binge')}
             />
             <NavButton
               icon={User}

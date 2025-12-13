@@ -6,8 +6,9 @@ import { Top5SelectionPage } from './pages/Top5SelectionPage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
 import { UpcomingPage } from './pages/UpcomingPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { BingePage } from './pages/BingePage';
 
-type Page = 'landing' | 'top5' | 'recommendations' | 'upcoming' | 'profile';
+type Page = 'landing' | 'top5' | 'recommendations' | 'upcoming' | 'profile' | 'binge';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('landing');
@@ -25,7 +26,7 @@ function AppContent() {
     setCurrentPage('top5');
   };
 
-  const handleNavigate = (page: 'landing' | 'recommendations' | 'upcoming' | 'profile') => {
+  const handleNavigate = (page: 'landing' | 'recommendations' | 'upcoming' | 'profile' | 'binge') => {
     setCurrentPage(page);
   };
 
@@ -46,6 +47,7 @@ function AppContent() {
       {currentPage === 'recommendations' && user && <RecommendationsPage onRePickTop5={handleRePickTop5} />}
       {currentPage === 'upcoming' && user && <UpcomingPage />}
       {currentPage === 'profile' && user && <ProfilePage onRePickTop5={handleRePickTop5} />}
+      {currentPage === 'binge' && user && <BingePage />}
     </div>
   );
 }
