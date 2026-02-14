@@ -3,12 +3,17 @@ import { ChevronLeft, ChevronRight, ExternalLink, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { recommendationEngine } from '../services/recommendationEngine';
-import { animeApi } from '../services/animeApi';
 import type { AnimeData } from '../lib/database.types';
+
+interface QueueItem {
+  anime: AnimeData;
+  aiSummary?: string;
+  redditMentions?: number;
+}
 
 export function BingePage() {
   const { user } = useAuth();
-  const [queue, setQueue] = useState<AnimeData[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [watchlist, setWatchlist] = useState<Set<number>>(new Set());
@@ -18,6 +23,7 @@ export function BingePage() {
     if (user) {
       loadQueue();
       loadWatchlist();
+      setupSubscription();
     }
     return () => {
       // cleanup subscription on unmount or user change
@@ -26,6 +32,24 @@ export function BingePage() {
       }
     };
   }, [user]);
+
+  const setupSubscription = () => {
+    try {
+      const channel = supabase
+        .channel('public-watchlist-' + Date.now())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'watchlist' }, () => {
+          loadQueue();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_top_anime' }, () => {
+          loadQueue();
+        })
+        .subscribe();
+
+      setSubscription(channel);
+    } catch (err) {
+      console.error('Failed to subscribe to realtime updates:', err);
+    }
+  };
 
   const loadWatchlist = async () => {
     if (!user) return;
@@ -55,34 +79,13 @@ export function BingePage() {
 
     const animeIds = topAnimeData.map((i: any) => i.anime_id);
 
-    // Subscribe to watchlist and user_top_anime changes so the binge queue updates automatically
-    try {
-      // remove existing subscription first
-      if (subscription && subscription.unsubscribe) {
-        try { subscription.unsubscribe(); } catch (e) { /* ignore */ }
-      }
-
-      const channel = supabase
-        .channel('public-watchlist')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'watchlist' }, () => {
-          loadQueue();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_top_anime' }, () => {
-          loadQueue();
-        })
-        .subscribe();
-
-      setSubscription(channel);
-    } catch (err) {
-      // ignore subscription failures; we still provide manual refresh
-      console.error('Failed to subscribe to realtime updates:', err);
-    }
-
-    const { data: preferences } = await supabase
+    const { data: preferencesData } = await supabase
       .from('user_preferences')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle();
+
+    const preferences = preferencesData as any;
 
     const recs = await recommendationEngine.getRecommendations(
       animeIds,
@@ -95,7 +98,11 @@ export function BingePage() {
       30
     );
 
-    const animeList = recs.map(r => r.anime);
+    const animeList = recs.map(r => ({
+      anime: r.anime,
+      aiSummary: r.aiSummary,
+      redditMentions: r.redditMentions
+    }));
     setQueue(animeList);
     setCurrentIndex(0);
     setLoading(false);
@@ -112,15 +119,23 @@ export function BingePage() {
   const addToWatchlist = async (anime: AnimeData) => {
     if (!user || watchlist.has(anime.mal_id)) return;
 
-    await supabase.from('watchlist').insert({
-      user_id: user.id,
-      anime_id: anime.mal_id,
-      anime_title: anime.title,
-      anime_image_url: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
-      is_liked: true
-    });
+    try {
+      const insertData: any = {
+        user_id: user.id,
+        anime_id: anime.mal_id,
+        anime_title: anime.title,
+        anime_image_url: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
+        is_liked: true
+      };
 
-    setWatchlist(new Set([...watchlist, anime.mal_id]));
+      const { error } = await (supabase.from('watchlist') as any).insert(insertData);
+
+      if (!error) {
+        setWatchlist(new Set([...watchlist, anime.mal_id]));
+      }
+    } catch (err) {
+      console.error('Error adding to watchlist:', err);
+    }
   };
 
   if (loading) {
@@ -163,33 +178,45 @@ export function BingePage() {
         <div className="comic-panel p-6 flex flex-col md:flex-row gap-6">
           <div className="md:w-1/3">
             <img
-              src={current.images?.jpg?.large_image_url || current.images?.jpg?.image_url}
-              alt={current.title}
+              src={current.anime.images?.jpg?.large_image_url || current.anime.images?.jpg?.image_url}
+              alt={current.anime.title}
               className="w-full h-auto border-2 border-black"
             />
             <div className="mt-3 flex gap-2">
               <button onClick={playPrev} className="comic-button px-3 py-2 bg-white border-2 border-black font-bold"> <ChevronLeft size={16} /> Prev</button>
               <button onClick={playNext} className="comic-button px-3 py-2 bg-white border-2 border-black font-bold">Next <ChevronRight size={16} /></button>
-              <button onClick={() => addToWatchlist(current)} disabled={watchlist.has(current.mal_id)} className="comic-button px-3 py-2 bg-[#4A7C7E] text-white font-bold border-2 border-black disabled:opacity-50">Add</button>
+              <button onClick={() => addToWatchlist(current.anime)} disabled={watchlist.has(current.anime.mal_id)} className="comic-button px-3 py-2 bg-[#4A7C7E] text-white font-bold border-2 border-black disabled:opacity-50">Add</button>
             </div>
           </div>
 
           <div className="md:w-2/3">
-            <h2 className="text-2xl font-bold text-black">{current.title}</h2>
-            <div className="text-xs font-bold text-black my-2">{current.year} • {current.type} • {current.episodes ?? '??'} eps</div>
-            {current.genres && (
+            <h2 className="text-2xl font-bold text-black">{current.anime.title}</h2>
+            <div className="text-xs font-bold text-black my-2">{current.anime.year} • {current.anime.type} • {current.anime.episodes ?? '??'} eps</div>
+            {current.anime.genres && (
               <div className="flex gap-2 mb-3">
-                {current.genres.slice(0, 4).map(g => (
+                {current.anime.genres.slice(0, 4).map(g => (
                   <span key={g.mal_id} className="text-xs px-2 py-1 bg-[#4A7C7E] text-white border border-black font-bold">{g.name}</span>
                 ))}
               </div>
             )}
 
-            <p className="text-sm text-black mb-4">{current.synopsis || 'No synopsis available.'}</p>
+            {current.aiSummary && (
+              <p className="text-sm font-semibold text-black mb-3 bg-[#FFF9E6] p-2 border border-black">
+                💡 {current.aiSummary}
+              </p>
+            )}
+
+            {current.redditMentions ? (
+              <p className="text-xs font-bold text-[#4A7C7E] mb-2">
+                🔥 Discussed on Reddit ({current.redditMentions} posts)
+              </p>
+            ) : null}
+
+            <p className="text-sm text-black mb-4">{current.anime.synopsis || 'No synopsis available.'}</p>
 
             <div className="flex gap-3">
               <a
-                href={`https://myanimelist.net/anime/${current.mal_id}`}
+                href={`https://myanimelist.net/anime/${current.anime.mal_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="comic-button inline-flex items-center gap-2 px-4 py-2 bg-[#5B6B9F] text-white font-bold border-2 border-black"
@@ -206,10 +233,10 @@ export function BingePage() {
         <div className="mt-6">
           <h3 className="text-xl font-bold text-black mb-3">Up Next</h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {queue.slice(currentIndex + 1, currentIndex + 9).map(a => (
-              <div key={a.mal_id} className="comic-panel p-2">
-                <img src={a.images?.jpg?.image_url} alt={a.title} className="w-full h-36 object-cover border-2 border-black mb-2" />
-                <div className="text-xs font-bold text-black">{a.title}</div>
+            {queue.slice(currentIndex + 1, currentIndex + 9).map(item => (
+              <div key={item.anime.mal_id} className="comic-panel p-2">
+                <img src={item.anime.images?.jpg?.image_url} alt={item.anime.title} className="w-full h-36 object-cover border-2 border-black mb-2" />
+                <div className="text-xs font-bold text-black">{item.anime.title}</div>
               </div>
             ))}
           </div>

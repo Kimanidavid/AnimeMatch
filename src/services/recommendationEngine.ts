@@ -17,6 +17,8 @@ interface RecommendationResult {
   anime: AnimeData;
   score: number;
   reasons: string[];
+  aiSummary?: string;
+  redditMentions?: number;
 }
 
 interface UserPreferences {
@@ -131,12 +133,27 @@ export const recommendationEngine = {
         reasons.unshift(`Popular with similar users (${coCount} others)`);
       }
 
-      return { anime, score, reasons };
+      // Generate AI summary
+      const aiSummary = this.generateAISummary(anime);
+
+      return { 
+        anime, 
+        score, 
+        reasons,
+        aiSummary,
+        redditMentions: 0
+      };
     });
 
     recommendations.sort((a, b) => b.score - a.score);
 
-    return recommendations.slice(0, limit);
+    const topRecommendations = recommendations.slice(0, limit);
+
+    // NOTE: Reddit mentions are now disabled to prevent timeout/performance issues
+    // Users can be notified via a future feature if needed
+    // Reddit API calls were causing the recommendation generation to hang
+    
+    return topRecommendations;
   },
 
   computeUserTasteVector(topAnime: AnimeData[]): AnimeFeatureVector {
@@ -281,5 +298,63 @@ export const recommendationEngine = {
     if (episodes <= 13) return 'short';
     if (episodes <= 26) return 'medium';
     return 'long';
+  },
+
+  async fetchRedditMentions(animeTitle: string): Promise<{ mentions: number; summary: string }> {
+    try {
+      // Search Reddit for anime subreddit discussions with 5 second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const subreddits = ['anime', 'animerecommendations'];
+      let totalMentions = 0;
+
+      for (const subreddit of subreddits) {
+        try {
+          const response = await fetch(
+            `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(animeTitle)}&sort=relevance&t=year&limit=3`,
+            {
+              headers: {
+                'User-Agent': 'AnimeMatch-App/1.0'
+              },
+              signal: controller.signal
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const posts = data.data?.children || [];
+            totalMentions += Math.min(posts.length, 5); // cap at 5 per subreddit
+            if (totalMentions > 10) break; // stop if we have enough mentions
+          }
+        } catch (err) {
+          // continue to next subreddit if one fails
+          continue;
+        }
+      }
+
+      clearTimeout(timeoutId);
+      return { mentions: totalMentions, summary: '' };
+    } catch (error) {
+      console.error('Error fetching Reddit mentions:', error);
+      return { mentions: 0, summary: '' };
+    }
+  },
+
+  generateAISummary(anime: AnimeData): string {
+    // Generate a concise AI-like summary based on anime attributes
+    const genres = anime.genres?.slice(0, 3).map(g => g.name).join(' and ') || 'anime';
+    const year = anime.year ? `from ${anime.year}` : '';
+    const episodes = anime.episodes ? ` with ${anime.episodes} episodes` : '';
+    const rating = anime.score ? ` (rated ${anime.score.toFixed(1)}/10)` : '';
+
+    let summary = `A ${genres} series${year}${episodes}${rating}.`;
+
+    if (anime.synopsis) {
+      const synopsisSnippet = anime.synopsis.substring(0, 120);
+      summary += ` ${synopsisSnippet}...`;
+    }
+
+    return summary;
   }
 };

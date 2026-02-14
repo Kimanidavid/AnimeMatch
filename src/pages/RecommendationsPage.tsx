@@ -182,12 +182,13 @@ export function RecommendationsPage({ onRePickTop5 }: RecommendationsPageProps) 
         )}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {recommendations.map(({ anime, score, reasons }) => (
+          {recommendations.map(({ anime, score, reasons, aiSummary }) => (
             <AnimeCard
               key={anime.mal_id}
               anime={anime}
               score={score}
               reasons={reasons}
+              aiSummary={aiSummary}
               inWatchlist={watchlist.has(anime.mal_id)}
               onAddToWatchlist={handleAddToWatchlist}
               onDislike={handleDislike}
@@ -199,10 +200,11 @@ export function RecommendationsPage({ onRePickTop5 }: RecommendationsPageProps) 
   );
 }
 
-function AnimeCard({ anime, score, reasons, inWatchlist, onAddToWatchlist, onDislike }: {
+function AnimeCard({ anime, score, reasons, aiSummary, inWatchlist, onAddToWatchlist, onDislike }: {
   anime: AnimeData;
   score: number;
   reasons: string[];
+  aiSummary?: string;
   inWatchlist: boolean;
   onAddToWatchlist: (anime: AnimeData) => void;
   onDislike: (anime: AnimeData) => void;
@@ -273,9 +275,14 @@ function AnimeCard({ anime, score, reasons, inWatchlist, onAddToWatchlist, onDis
           {showDetails ? 'Hide' : 'Info'}
         </button>
 
-        {showDetails && anime.synopsis && (
+        {showDetails && (
           <div className="mt-2 pt-2 border-t-2 border-black">
-            <p className="text-xs text-black font-semibold line-clamp-3">{anime.synopsis}</p>
+            {aiSummary && (
+              <p className="text-xs text-black font-semibold mb-2">{aiSummary}</p>
+            )}
+            {anime.synopsis && (
+              <p className="text-xs text-black font-semibold line-clamp-3">{anime.synopsis}</p>
+            )}
             <a
               href={`https://myanimelist.net/anime/${anime.mal_id}`}
               target="_blank"

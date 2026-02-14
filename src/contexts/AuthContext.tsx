@@ -17,18 +17,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let mounted = true;
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (mounted) {
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to get session:', err);
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
+      if (mounted) {
         setUser(session?.user ?? null);
-      })();
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {
@@ -41,20 +57,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: data.user.id,
-            username
-          });
+        const { error: profileError } = await (supabase.from('user_profiles') as any).insert({
+          id: data.user.id,
+          username
+        });
 
         if (profileError) throw profileError;
 
-        const { error: prefError } = await supabase
-          .from('user_preferences')
-          .insert({
-            user_id: data.user.id
-          });
+        const { error: prefError } = await (supabase.from('user_preferences') as any).insert({
+          user_id: data.user.id
+        });
 
         if (prefError) throw prefError;
       }
