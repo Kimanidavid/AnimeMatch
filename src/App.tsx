@@ -6,7 +6,7 @@ import { Top5SelectionPage } from './pages/Top5SelectionPage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
 import { UpcomingPage } from './pages/UpcomingPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { BingePage } from './pages/BingePage';
+import BingePage from './pages/BingePage';
 
 type Page = 'landing' | 'top5' | 'recommendations' | 'upcoming' | 'profile' | 'binge';
 
